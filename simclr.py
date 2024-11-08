@@ -21,7 +21,7 @@ class SimCLR(object):
         self.scheduler = kwargs['scheduler']
         self.writer = SummaryWriter()
 
-        logging.basicConfig(filename=os.path.join(self.writer.log_dir, 'training.log'), level=logging.DEBUG)
+        logging.basicConfig(filename=os.path.join(self.writer.log_dir, 'training.log'), level=logging.DEBUG, force=True)
         self.criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
 
     def info_nce_loss(self, features):
