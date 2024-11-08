@@ -6,6 +6,21 @@ from data_aug.contrastive_learning_dataset import ContrastiveLearningDataset
 from models.resnet_simclr import ResNetSimCLR
 from simclr import SimCLR
 
+
+# Define a warmup scheduler
+def warmup_scheduler_setup(Optimizer):
+    from torch.optim.lr_scheduler import LambdaLR
+    def warmup_plan(epoch):
+        if epoch < 10:
+            return epoch / 10
+        else:
+            return 1
+
+    warmup_scheduler_obj = LambdaLR(Optimizer, lr_lambda=warmup_plan)
+    return warmup_scheduler_obj
+
+
+
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
@@ -79,9 +94,17 @@ def main():
 
     optimizer = torch.optim.Adam(model.parameters(), args.lr, weight_decay=args.weight_decay)
 
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=len(train_loader), eta_min=0,
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=len(train_loader), eta_min=0,
+    #                                                        last_epoch=-1)
+
+    # warmup
+    warmup_scheduler = warmup_scheduler_setup(optimizer)
+    # cosine annealing
+    cosine_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=0,
                                                            last_epoch=-1)
 
+    scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, schedulers=[warmup_scheduler, cosine_scheduler],
+                                                      milestones=[10])
     #  It’s a no-op if the 'gpu_index' argument is a negative integer or None.
     with torch.cuda.device(args.gpu_index):
         simclr = SimCLR(model=model, optimizer=optimizer, scheduler=scheduler, args=args)
