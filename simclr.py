@@ -109,3 +109,29 @@ class SimCLR(object):
             'optimizer': self.optimizer.state_dict(),
         }, is_best=False, filename=os.path.join(self.writer.log_dir, checkpoint_name))
         logging.info(f"Model checkpoint and metadata has been saved at {self.writer.log_dir}.")
+
+    def test(self, test_loader):
+        self.model.eval()
+        top_1_acc = []
+        total_num = []
+        with torch.no_grad():
+            for images, _ in tqdm(test_loader):
+                images = torch.cat(images, dim=0)
+
+                images = images.to(self.args.device)
+
+                with autocast(enabled=self.args.fp16_precision, device_type=self.args.device_type):
+                    features = self.model(images)
+                    logits, labels = self.info_nce_loss(features)
+
+                    top1, _ = accuracy(logits, labels, topk=(1, 5))
+                    top_1_acc.append(top1[0].item())
+                    total_num.append(labels.size(0))
+
+        top1_accuracy = sum(top_1_acc) / sum(total_num)
+        print(f'Top-1 Accuracy: {top1_accuracy:.2f}%')
+        # logging.info(f'Top-1 Accuracy: {top1_accuracy:.2f}%')
+
+
+
+
