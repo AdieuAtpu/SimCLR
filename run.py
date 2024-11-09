@@ -5,6 +5,7 @@ from torchvision import models
 from data_aug.contrastive_learning_dataset import ContrastiveLearningDataset
 from models.resnet_simclr import ResNetSimCLR
 from simclr import SimCLR
+from lars import Lars
 
 
 # Define a warmup scheduler
@@ -46,7 +47,7 @@ parser.add_argument('-b', '--batch-size', default=256, type=int,
                          'using Data Parallel or Distributed Data Parallel')
 parser.add_argument('--lr', '--learning-rate', default=0.0003, type=float,
                     metavar='LR', help='initial learning rate', dest='lr')
-parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
+parser.add_argument('--wd', '--weight-decay', default=1e-6, type=float,
                     metavar='W', help='weight decay (default: 1e-4)',
                     dest='weight_decay')
 parser.add_argument('--seed', default=None, type=int,
@@ -92,11 +93,12 @@ def main():
 
     model = ResNetSimCLR(base_model=args.arch, out_dim=args.out_dim)
 
-    optimizer = torch.optim.Adam(model.parameters(), args.lr, weight_decay=args.weight_decay)
+    # optimizer = torch.optim.Adam(model.parameters(), args.lr, weight_decay=args.weight_decay)
 
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=len(train_loader), eta_min=0,
     #                                                        last_epoch=-1)
 
+    optimizer = Lars(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     # warmup
     warmup_scheduler = warmup_scheduler_setup(optimizer)
     # cosine annealing
