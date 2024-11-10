@@ -17,3 +17,11 @@ $ python run.py -data ./datasets -dataset-name cifar10 -j 4 --log-every-n-steps 
 ```
 
 If you want to run it on CPU (for debugging purposes) use the ```--disable-cuda``` option.
+
+## Testing
+
+change the checkpoint_path, then run the *feature_test.py*
+
+## Results
+
+Some training and testing records can be found in running folder
