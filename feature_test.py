@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     model = torchvision.models.resnet18(pretrained=False, num_classes=10).to(device)
 
-    checkpoint_path = 'runs/Nov10_b512_e200/checkpoint_0200.pth.tar'
+    checkpoint_path = 'runs/Nov15_12-40-13_Eri/checkpoint_0100.pth.tar'
     log_dir = os.path.dirname(checkpoint_path)
     log_file = os.path.join(log_dir, 'testing_output.log')
 
@@ -73,6 +73,11 @@ if __name__ == '__main__':
         if k.startswith('backbone.'):
             if k.startswith('backbone') and not k.startswith('backbone.fc'):
                 state_dict[k[len("backbone."):]] = state_dict[k]
+
+        elif k.startswith('res_backbone.'):
+            if k.startswith('res_backbone') and not k.startswith('res_backbone.fc'):
+                state_dict[k[len("res_backbone."):]] = state_dict[k]
+
         del state_dict[k]
 
     log = model.load_state_dict(state_dict, strict=False)
