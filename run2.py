@@ -61,11 +61,11 @@ parser.add_argument('--out_dim', default=128, type=int,
                     help='feature dimension (default: 128)')
 parser.add_argument('--bias', default=0.2, type=float,
                     help='temperature bias')
-parser.add_argument('--beta', default=1.2, type=float,
+parser.add_argument('--beta', default=0.1, type=float,
                     help='l2 loss beta')
 parser.add_argument('--log-every-n-steps', default=100, type=int,
                     help='Log every n steps')
-parser.add_argument('--temperature', default=0.07, type=float,
+parser.add_argument('--temperature', default=0.03, type=float,
                     help='softmax temperature (default: 0.07)')
 parser.add_argument('--n-views', default=2, type=int, metavar='N',
                     help='Number of views for contrastive learning training.')
