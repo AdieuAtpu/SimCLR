@@ -17,12 +17,13 @@ class AdaptiveMultiH_CLR(nn.Module):
         self.fc1 = nn.Sequential(nn.Linear(dim_in, self.dim_outs[0]),
                                       nn.ReLU(),
                                       nn.Linear(self.dim_outs[0], self.dim_outs[0]))
-        self.fc2 = nn.Sequential(nn.Linear(dim_in, self.dim_outs[1]),
-                                      nn.ReLU(),
-                                      nn.Linear(self.dim_outs[1], self.dim_outs[1]))
-        self.fc3 = nn.Sequential(nn.Linear(dim_in, self.dim_outs[2]),
-                                      nn.ReLU(),
-                                      nn.Linear(self.dim_outs[2], self.dim_outs[2]))
+
+
+        self.mlp_heads = nn.ModuleList([nn.Sequential(nn.Linear(dim_in, 128),
+                                                      nn.ReLU(),
+                                                      nn.Linear(128, 128)
+                                                      )
+                                        for _ in range(3)])
 
 
         self.temper_fc = nn.Sequential(nn.Linear(128, 32),
@@ -45,11 +46,21 @@ class AdaptiveMultiH_CLR(nn.Module):
 
     def forward(self, x):
         x = self.res_backbone(x)
+        feature_map_lib = []
+        temperature_lib = []
+
         # similarity_matrixset = []
 
         # different dimension head mlp
-        feature_map1 = self.fc1(x)
-        temperature1 = self.temper_fc(feature_map1)
+        # feature_map1 = self.fc1(x)
+        # temperature1 = self.temper_fc(feature_map1)
+
+        for i in range(3):
+            feature_map = self.mlp_heads[i](x)
+            temperature = self.temper_fc(feature_map)
+            feature_map_lib.append(feature_map)
+            temperature_lib.append(temperature)
+
         # feature_map1 = nn.functional.normalize(feature_map1, dim=1)
         # similarity_matrixset.append(torch.matmul(feature_map1, feature_map1.T))
 
@@ -69,4 +80,4 @@ class AdaptiveMultiH_CLR(nn.Module):
         # similarity_matrix = similarity_matrixset[1]
         # temperature = self.temper_fc(similarity_matrix3)
 
-        return feature_map1, temperature1
+        return feature_map_lib, temperature_lib

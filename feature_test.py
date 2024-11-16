@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     model = torchvision.models.resnet18(pretrained=False, num_classes=10).to(device)
 
-    checkpoint_path = 'runs/Nov15_17-42-02_Eri/checkpoint_0100.pth.tar'
+    checkpoint_path = 'runs/Nov15_20-20-25_Eri/checkpoint_0100.pth.tar'
     log_dir = os.path.dirname(checkpoint_path)
     log_file = os.path.join(log_dir, 'testing_output.log')
 

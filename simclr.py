@@ -154,6 +154,18 @@ class AM_SimCLR(object):
 
         return logits, labels
 
+    def info_nce_loss4lib(self, feature_map_lib, temperature_lib):
+        assert len(feature_map_lib) == len(temperature_lib)
+
+        logits_mean = 0
+        for fmap, t in zip(feature_map_lib, temperature_lib):
+            logits, labels = self.info_nce_loss(fmap,t)
+            logits_mean += logits
+
+        logits_mean = logits_mean / 3.0  # mean value
+        return logits_mean, labels
+
+
     def train(self, train_loader):
 
         scaler = GradScaler(enabled=self.args.fp16_precision)
@@ -165,6 +177,7 @@ class AM_SimCLR(object):
         logging.info(f"Start AM_SimCLR training for {self.args.epochs} epochs.")
         logging.info(f"Disable gpu: {self.args.disable_cuda}.")
 
+
         for epoch_counter in range(self.args.epochs):
             for images, _ in tqdm(train_loader):
                 images = torch.cat(images, dim=0)
@@ -172,12 +185,28 @@ class AM_SimCLR(object):
                 images = images.to(self.args.device)
 
                 with autocast(enabled=self.args.fp16_precision, device_type=self.args.device_type):
-                    feature_map, temperature = self.model(images)
-                    logits, labels = self.info_nce_loss(feature_map, temperature)
+                    # feature_map, temperature = self.model(images)
+                    #
+                    # logits, labels = self.info_nce_loss(feature_map, temperature)
+
+                    # loss = self.criterion(logits, labels)
+                    #
+                    # regloss = torch.norm(temperature, p=1)  # l2 regularization
+                    # loss += self.args.beta * regloss / self.args.batch_size
+
+                    feature_maps, temperatures = self.model(images)
+
+                    logits, labels = self.info_nce_loss4lib(feature_maps, temperatures)
+
                     loss = self.criterion(logits, labels)
 
-                    regloss = torch.norm(temperature, p=1)  # l2 regularization
-                    loss += self.args.beta * regloss / self.args.batch_size
+                    for temperature in temperatures:
+                        regloss = torch.norm(temperature, p=1)  # l2 regularization
+                        loss += self.args.beta * regloss / self.args.batch_size
+
+
+                    # regloss = torch.norm(temperatures, p=1)  # l2 regularization
+                    # loss += self.args.beta * regloss / self.args.batch_size
 
                 self.optimizer.zero_grad()
 
