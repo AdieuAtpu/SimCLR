@@ -26,9 +26,12 @@ class AdaptiveMultiH_CLR(nn.Module):
                                         for _ in range(3)])
 
 
-        self.temper_fc = nn.Sequential(nn.Linear(128, 32),
-                                       nn.ReLU(),
-                                       nn.Linear(32, 1),
+        # self.temper_fc = nn.Sequential(nn.Linear(128, 32),
+        #                                nn.ReLU(),
+        #                                nn.Linear(32, 1),
+        #                                nn.Sigmoid())
+
+        self.temper_fc = nn.Sequential(nn.Linear(128, 1),
                                        nn.Sigmoid())
 
         # add mlp projection head
